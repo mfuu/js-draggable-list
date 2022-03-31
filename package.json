@@ -1,5 +1,5 @@
 {
-  "name": "draggable-lst",
+  "name": "js-draggable-list",
   "version": "0.0.1",
   "description": "Make array elements draggable",
   "main": "dist/index.js",
@@ -14,20 +14,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mfuu/draggable.js.git"
+    "url": "git+https://github.com/mfuu/js-draggable-list.git"
   },
   "keywords": [
     "drag",
     "sort",
+    "sortable",
     "draggable",
     "list"
   ],
   "author": "mfuu",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mfuu/draggable.js/issues"
+    "url": "https://github.com/mfuu/js-draggable-list/issues"
   },
-  "homepage": "https://github.com/mfuu/draggable.js#readme",
+  "homepage": "https://github.com/mfuu/js-draggable-list#readme",
   "devDependencies": {
     "@babel/core": "^7.8.7",
     "@babel/plugin-syntax-jsx": "^7.16.5",
@@ -44,5 +45,6 @@
     "rollup-plugin-vue": "^4.2.0",
     "rollup-plugin-vue2": "^0.8.1",
     "uglifyjs-webpack-plugin": "^2.2.0"
-  }
+  },
+  "dependencies": {}
 }

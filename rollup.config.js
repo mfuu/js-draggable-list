@@ -5,7 +5,7 @@ const homepage = packageJson.homepage
 
 const banner = `
 /*!
- * draggable-lst v${version}
+ * js-draggable-list v${version}
  * open source under the MIT license
  * ${homepage}
  */

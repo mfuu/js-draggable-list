@@ -9,13 +9,17 @@ export default class Draggable {
     this.cloneElementStyle = options.cloneElementStyle // 克隆元素包含的属性
     this.cloneElementClass = options.cloneElementClass // 克隆元素的类名
 
+    this.rectList = [] // 用于保存拖拽项getBoundingClientRect()方法获得的数据
     this.delay = options.delay || 300
     this.isMousedown = false // 记录鼠标按下
 
     this.drag = { element: null, index: 0, lastIndex: 0 } // 拖拽元素
     this.drop = { element: null, index: 0, lastIndex: 0 } // 释放元素
     this.clone = { element: null, x: 0, y: 0 } // 拖拽蒙版
-    this.rectList = [] // 用于保存拖拽项getBoundingClientRect()方法获得的数据
+    this.diff = {
+      old: { node: null, rect: {} },
+      new: { node: null, rect: {} }
+    } // 记录拖拽前后差异
 
     this.init()
   }
@@ -48,6 +52,7 @@ export default class Draggable {
     this.clone.element = this.drag.element.cloneNode(true)
     // 获取当前元素在列表中的位置
     const index = this._getElementIndex()
+    this.diff.old.rect = this.rectList[index]
     this.clone.x = this.rectList[index].left
     this.clone.y = this.rectList[index].top
     this.drag.index = index
@@ -84,17 +89,21 @@ export default class Draggable {
             this._animate(this.drag.element, this.rectList[this.drag.index], this.rectList[this.drag.lastIndex])
             this._animate(this.drop.element, this.rectList[this.drop.index], this.rectList[this.drop.lastIndex])
             this.drag.lastIndex = i
-            // 拖拽完成触发回调函数
-            this.dragEnd && this.dragEnd(this.drag.element, this.drop.element)
+            this.diff.old.node = this.drag.element
+            this.diff.new.node = this.drop.element
           }
+          this.diff.new.rect = this.rectList[i]
           break
         }
       }
     }
     document.onmouseup = () => {
       if (this.isMousedown) {
+        // 拖拽完成触发回调函数
+        if (this.dragEnd) this.dragEnd(this.diff.old, this.diff.new)
         this.isMousedown = false
         this.clone.element.remove()
+        this._clearDiff()
       }
     }
   }
@@ -173,6 +182,13 @@ export default class Draggable {
     this.clone = { element: null, x: 0, y: 0 }
     this.drag = { element: null, index: 0, lastIndex: 0 }
     this.drop = { element: null, index: 0, lastIndex: 0 }
+    this._clearDiff()
+  }
+  _clearDiff() {
+    this.diff = {
+      old: { node: null, rect: {} },
+      new: { node: null, rect: {} }
+    }
   }
   _bindEventListener() {
     this._handleMousedown = this._handleMousedown.bind(this)
