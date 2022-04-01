@@ -43,6 +43,7 @@ export default class Draggable {
     if (e.button !== 0) return true
     if (e.target === this.parent) return true
     if (!e.target.getAttribute('draggable')) return true
+    if (!this.rectList.length) this._getChildrenRect()
     this.isMousedown = true
     // 记录拖拽移动时坐标
     const calcXY = { x: e.clientX, y: e.clientY }

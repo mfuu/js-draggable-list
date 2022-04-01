@@ -1,5 +1,5 @@
 /*!
- * js-draggable-list v0.0.1
+ * js-draggable-list v0.0.2
  * open source under the MIT license
  * https://github.com/mfuu/js-draggable-list#readme
  */
@@ -206,6 +206,7 @@
         if (e.button !== 0) return true;
         if (e.target === this.parent) return true;
         if (!e.target.getAttribute('draggable')) return true;
+        if (!this.rectList.length) this._getChildrenRect();
         this.isMousedown = true; // 记录拖拽移动时坐标
 
         var calcXY = {
