@@ -15,7 +15,7 @@ export default class Draggable {
 
     this.drag = { element: null, index: 0, lastIndex: 0 } // 拖拽元素
     this.drop = { element: null, index: 0, lastIndex: 0 } // 释放元素
-    this.clone = { element: null, x: 0, y: 0 } // 拖拽蒙版
+    this.clone = { element: null, x: 0, y: 0, exist: false } // 拖拽蒙版
     this.diff = {
       old: { node: null, rect: {} },
       new: { node: null, rect: {} }
@@ -24,7 +24,10 @@ export default class Draggable {
     this.init()
   }
   init() {
-    if (!this.parent) console.error('Error: groupElement is required')
+    if (!this.parent) {
+      console.error('Error: groupElement is required')
+      return
+    }
     this._bindEventListener()
     this._getChildrenRect()
   }
@@ -103,7 +106,7 @@ export default class Draggable {
         // 拖拽完成触发回调函数
         if (this.dragEnd) this.dragEnd(this.diff.old, this.diff.new)
         this.isMousedown = false
-        this.clone.element.remove()
+        this._destroyCloneElement()
         this._clearDiff()
       }
     }
@@ -123,7 +126,14 @@ export default class Draggable {
     for (const key in this.cloneElementStyle) {
       this._styled(this.clone.element, key, this.cloneElementStyle[key])
     }
-    document.body.appendChild(this.clone.element)
+    if (!this.clone.element.exist) {
+      document.body.appendChild(this.clone.element)
+      this.clone.element.exist = true
+    }
+  }
+  _destroyCloneElement() {
+    this.clone.element.remove()
+    this.clone.element.exist = false
   }
   _handleCloneMove() {
     this.clone.element.style.transform = `translate3d(${this.clone.x}px, ${this.clone.y}px, 0)`

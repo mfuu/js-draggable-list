@@ -1,5 +1,5 @@
 /*!
- * js-draggable-list v0.0.2
+ * js-draggable-list v0.0.3
  * open source under the MIT license
  * https://github.com/mfuu/js-draggable-list#readme
  */
@@ -145,7 +145,8 @@
       this.clone = {
         element: null,
         x: 0,
-        y: 0
+        y: 0,
+        exist: false
       }; // 拖拽蒙版
 
       this.diff = {
@@ -165,7 +166,10 @@
     _createClass(Draggable, [{
       key: "init",
       value: function init() {
-        if (!this.parent) console.error('Error: groupElement is required');
+        if (!this.parent) {
+          console.error('Error: groupElement is required');
+          return;
+        }
 
         this._bindEventListener();
 
@@ -285,7 +289,7 @@
             if (_this.dragEnd) _this.dragEnd(_this.diff.old, _this.diff["new"]);
             _this.isMousedown = false;
 
-            _this.clone.element.remove();
+            _this._destroyCloneElement();
 
             _this._clearDiff();
           }
@@ -312,7 +316,16 @@
           this._styled(this.clone.element, key, this.cloneElementStyle[key]);
         }
 
-        document.body.appendChild(this.clone.element);
+        if (!this.clone.element.exist) {
+          document.body.appendChild(this.clone.element);
+          this.clone.element.exist = true;
+        }
+      }
+    }, {
+      key: "_destroyCloneElement",
+      value: function _destroyCloneElement() {
+        this.clone.element.remove();
+        this.clone.element.exist = false;
       }
     }, {
       key: "_handleCloneMove",
