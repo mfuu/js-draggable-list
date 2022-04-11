@@ -21,7 +21,7 @@ export default class Draggable {
       new: { node: null, rect: {} }
     } // 记录拖拽前后差异
 
-    this.init()
+    this._debounce(this.init(), 50) // 避免重复执行多次
   }
   init() {
     if (!this.parent) {

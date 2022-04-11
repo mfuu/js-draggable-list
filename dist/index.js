@@ -1,5 +1,5 @@
 /*!
- * js-draggable-list v0.0.4
+ * js-draggable-list v0.0.5
  * open source under the MIT license
  * https://github.com/mfuu/js-draggable-list#readme
  */
@@ -160,7 +160,8 @@
         }
       }; // 记录拖拽前后差异
 
-      this.init();
+      this._debounce(this.init(), 50); // 避免重复执行多次
+
     }
 
     _createClass(Draggable, [{
