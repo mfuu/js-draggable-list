@@ -1,5 +1,5 @@
 /*!
- * js-draggable-list v0.0.6
+ * js-draggable-list v0.0.7
  * open source under the MIT license
  * https://github.com/mfuu/js-draggable-list#readme
  */
@@ -352,7 +352,7 @@
     }, {
       key: "_destroyClone",
       value: function _destroyClone() {
-        this.clone.element.remove();
+        if (this.clone.element) this.clone.element.remove();
         this.clone = {
           element: null,
           x: 0,

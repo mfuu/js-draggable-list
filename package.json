@@ -1,6 +1,6 @@
 {
   "name": "js-draggable-list",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Make array elements draggable",
   "main": "dist/draggable.js",
   "files": [

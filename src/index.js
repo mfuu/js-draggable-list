@@ -157,7 +157,7 @@ export default class Draggable {
     this.clone.element.style.transform = `translate3d(${this.clone.x}px, ${this.clone.y}px, 0)`
   }
   _destroyClone() {
-    this.clone.element.remove()
+    if (this.clone.element) this.clone.element.remove()
     this.clone = { element: null, x: 0, y: 0, exist: false }
   }
   _getElementIndex() {
