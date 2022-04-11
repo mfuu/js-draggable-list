@@ -1,3 +1,15 @@
+/**
+ * @interface Options {
+ * @groupElement: HTMLElement
+ * @scrollElement?: HTMLElement, // if not set, same as `groupElement`
+ * @dragElement?: Function, return element node selected when dragging, or null
+ * @dragEnd?: Function, The callback function when the drag is completed
+ * @cloneElementStyle?: Object
+ * @cloneElementClass?: String
+ * @
+ * }
+ */
+
 export default class Draggable {
   constructor(options) {
     this.parent = options.groupElement // 父级元素
@@ -9,9 +21,11 @@ export default class Draggable {
     this.cloneElementStyle = options.cloneElementStyle // 克隆元素包含的属性
     this.cloneElementClass = options.cloneElementClass // 克隆元素的类名
 
+    this.delay = options.delay || 300 // 动画延迟
+
     this.rectList = [] // 用于保存拖拽项getBoundingClientRect()方法获得的数据
-    this.delay = options.delay || 300
     this.isMousedown = false // 记录鼠标按下
+    this.isMousemove = false // 记录鼠标移动
 
     this.drag = { element: null, index: 0, lastIndex: 0 } // 拖拽元素
     this.drop = { element: null, index: 0, lastIndex: 0 } // 释放元素
@@ -43,14 +57,23 @@ export default class Draggable {
     }
   }
   _handleMousedown(e) {
-    if (e.button !== 0) return
-    if (e.target === this.parent) return
+    if (e.button !== 0) return true
+    if (e.target === this.parent) return true
     if (!this.rectList.length) this._getChildrenRect()
+    try {
+      // 获取拖拽元素
+      const element = this.dragElement ? this.dragElement(e) : e.target
+      // 不存在拖拽元素时不允许拖拽
+      if (!element) return true
+
+      this.drag.element = element
+    } catch(e) {
+      //
+      return true
+    }
     this.isMousedown = true
     // 记录拖拽移动时坐标
     const calcXY = { x: e.clientX, y: e.clientY }
-    // 获取拖拽元素
-    this.drag.element = this.dragElement ? this.dragElement(e) : e.target
     // 将拖拽元素克隆一份作为蒙版
     this.clone.element = this.drag.element.cloneNode(true)
     // 获取当前元素在列表中的位置
@@ -61,12 +84,15 @@ export default class Draggable {
     this.drag.index = index
     this.drag.lastIndex = index
 
-    this._initCloneElement()
-    this._handleCloneMove()
-
     document.onmousemove = (e) => {
+      // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
+      this._initCloneElement()
+      this._handleCloneMove()
+
       e.preventDefault()
-      if (!this.isMousedown) return true
+      if (!this.isMousedown) return
+
+      this.isMousemove = true
       
       this.clone.x += e.clientX - calcXY.x
       this.clone.y += e.clientY - calcXY.y
@@ -101,19 +127,16 @@ export default class Draggable {
       }
     }
     document.onmouseup = () => {
-      if (this.isMousedown) {
+      document.onmousemove = null
+      document.onmouseup = null
+      if (this.isMousedown && this.isMousemove) {
         // 拖拽完成触发回调函数
         if (this.dragEnd) this.dragEnd(this.diff.old, this.diff.new)
-        this.isMousedown = false
-        this._destroyCloneElement()
-        this._clearDiff()
       }
-    }
-  }
-  _handleMousecancel() {
-    if (this.isMousedown) {
       this.isMousedown = false
-      this.clone.element.remove()
+      this.isMousemove = false
+      this._destroyClone()
+      this._clearDiff()
     }
   }
   _initCloneElement() {
@@ -130,12 +153,12 @@ export default class Draggable {
       this.clone.element.exist = true
     }
   }
-  _destroyCloneElement() {
-    this.clone.element.remove()
-    this.clone.element.exist = false
-  }
   _handleCloneMove() {
     this.clone.element.style.transform = `translate3d(${this.clone.x}px, ${this.clone.y}px, 0)`
+  }
+  _destroyClone() {
+    this.clone.element.remove()
+    this.clone = { element: null, x: 0, y: 0, exist: false }
   }
   _getElementIndex() {
     const children = Array.from(this.parent.children)
@@ -188,10 +211,11 @@ export default class Draggable {
   }
   _resetState() {
     this.isMousedown = false
-    this.rectList = []
-    this.clone = { element: null, x: 0, y: 0 }
+    this.isMousemove = false
+    this.rectList.length = 0
     this.drag = { element: null, index: 0, lastIndex: 0 }
     this.drop = { element: null, index: 0, lastIndex: 0 }
+    this._destroyClone()
     this._clearDiff()
   }
   _clearDiff() {
@@ -210,7 +234,7 @@ export default class Draggable {
     window.addEventListener('orientationchange', this._debounce(this._getChildrenRect, 50))
   }
   _unbindEventListener() {
-    this.parent.removeEventListener('mousedown', this._handleMousecancel)
+    this.parent.removeEventListener('mousedown', this._handleMousedown)
     this.scrollElement.removeEventListener('scroll', this._getChildrenRect)
     window.removeEventListener('scroll', this._getChildrenRect)
     window.removeEventListener('resize', this._getChildrenRect)

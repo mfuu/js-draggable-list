@@ -1,8 +1,8 @@
 {
   "name": "js-draggable-list",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Make array elements draggable",
-  "main": "dist/index.js",
+  "main": "dist/draggable.js",
   "files": [
     "src",
     "dist"
@@ -39,7 +39,7 @@
     "rollup": "^2.61.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0"
-  },
-  "dependencies": {}
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-uglify": "^6.0.4"
+  }
 }

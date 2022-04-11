@@ -1,5 +1,5 @@
 /*!
- * js-draggable-list v0.0.5
+ * js-draggable-list v0.0.6
  * open source under the MIT license
  * https://github.com/mfuu/js-draggable-list#readme
  */
@@ -109,6 +109,17 @@
     };
   }
 
+  /**
+   * @interface Options {
+   * @groupElement: HTMLElement
+   * @scrollElement?: HTMLElement, // if not set, same as `groupElement`
+   * @dragElement?: Function, return element node selected when dragging, or null
+   * @dragEnd?: Function, The callback function when the drag is completed
+   * @cloneElementStyle?: Object
+   * @cloneElementClass?: String
+   * @
+   * }
+   */
   var Draggable = /*#__PURE__*/function () {
     function Draggable(options) {
       _classCallCheck(this, Draggable);
@@ -125,10 +136,13 @@
 
       this.cloneElementClass = options.cloneElementClass; // 克隆元素的类名
 
+      this.delay = options.delay || 300; // 动画延迟
+
       this.rectList = []; // 用于保存拖拽项getBoundingClientRect()方法获得的数据
 
-      this.delay = options.delay || 300;
       this.isMousedown = false; // 记录鼠标按下
+
+      this.isMousemove = false; // 记录鼠标移动
 
       this.drag = {
         element: null,
@@ -208,17 +222,27 @@
       value: function _handleMousedown(e) {
         var _this = this;
 
-        if (e.button !== 0) return;
-        if (e.target === this.parent) return;
+        if (e.button !== 0) return true;
+        if (e.target === this.parent) return true;
         if (!this.rectList.length) this._getChildrenRect();
+
+        try {
+          // 获取拖拽元素
+          var element = this.dragElement ? this.dragElement(e) : e.target; // 不存在拖拽元素时不允许拖拽
+
+          if (!element) return true;
+          this.drag.element = element;
+        } catch (e) {
+          //
+          return true;
+        }
+
         this.isMousedown = true; // 记录拖拽移动时坐标
 
         var calcXY = {
           x: e.clientX,
           y: e.clientY
-        }; // 获取拖拽元素
-
-        this.drag.element = this.dragElement ? this.dragElement(e) : e.target; // 将拖拽元素克隆一份作为蒙版
+        }; // 将拖拽元素克隆一份作为蒙版
 
         this.clone.element = this.drag.element.cloneNode(true); // 获取当前元素在列表中的位置
 
@@ -230,13 +254,15 @@
         this.drag.index = index;
         this.drag.lastIndex = index;
 
-        this._initCloneElement();
-
-        this._handleCloneMove();
-
         document.onmousemove = function (e) {
+          // 将初始化放在 move 事件中，避免与鼠标点击事件冲突
+          _this._initCloneElement();
+
+          _this._handleCloneMove();
+
           e.preventDefault();
-          if (!_this.isMousedown) return true;
+          if (!_this.isMousedown) return;
+          _this.isMousemove = true;
           _this.clone.x += e.clientX - calcXY.x;
           _this.clone.y += e.clientY - calcXY.y;
           calcXY.x = e.clientX;
@@ -284,24 +310,21 @@
         };
 
         document.onmouseup = function () {
-          if (_this.isMousedown) {
+          document.onmousemove = null;
+          document.onmouseup = null;
+
+          if (_this.isMousedown && _this.isMousemove) {
             // 拖拽完成触发回调函数
             if (_this.dragEnd) _this.dragEnd(_this.diff.old, _this.diff["new"]);
-            _this.isMousedown = false;
-
-            _this._destroyCloneElement();
-
-            _this._clearDiff();
           }
+
+          _this.isMousedown = false;
+          _this.isMousemove = false;
+
+          _this._destroyClone();
+
+          _this._clearDiff();
         };
-      }
-    }, {
-      key: "_handleMousecancel",
-      value: function _handleMousecancel() {
-        if (this.isMousedown) {
-          this.isMousedown = false;
-          this.clone.element.remove();
-        }
       }
     }, {
       key: "_initCloneElement",
@@ -322,15 +345,20 @@
         }
       }
     }, {
-      key: "_destroyCloneElement",
-      value: function _destroyCloneElement() {
-        this.clone.element.remove();
-        this.clone.element.exist = false;
-      }
-    }, {
       key: "_handleCloneMove",
       value: function _handleCloneMove() {
         this.clone.element.style.transform = "translate3d(".concat(this.clone.x, "px, ").concat(this.clone.y, "px, 0)");
+      }
+    }, {
+      key: "_destroyClone",
+      value: function _destroyClone() {
+        this.clone.element.remove();
+        this.clone = {
+          element: null,
+          x: 0,
+          y: 0,
+          exist: false
+        };
       }
     }, {
       key: "_getElementIndex",
@@ -405,12 +433,8 @@
       key: "_resetState",
       value: function _resetState() {
         this.isMousedown = false;
-        this.rectList = [];
-        this.clone = {
-          element: null,
-          x: 0,
-          y: 0
-        };
+        this.isMousemove = false;
+        this.rectList.length = 0;
         this.drag = {
           element: null,
           index: 0,
@@ -421,6 +445,8 @@
           index: 0,
           lastIndex: 0
         };
+
+        this._destroyClone();
 
         this._clearDiff();
       }
@@ -452,7 +478,7 @@
     }, {
       key: "_unbindEventListener",
       value: function _unbindEventListener() {
-        this.parent.removeEventListener('mousedown', this._handleMousecancel);
+        this.parent.removeEventListener('mousedown', this._handleMousedown);
         this.scrollElement.removeEventListener('scroll', this._getChildrenRect);
         window.removeEventListener('scroll', this._getChildrenRect);
         window.removeEventListener('resize', this._getChildrenRect);
