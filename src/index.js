@@ -43,9 +43,8 @@ export default class Draggable {
     }
   }
   _handleMousedown(e) {
-    if (e.button !== 0) return true
-    if (e.target === this.parent) return true
-    if (!e.target.getAttribute('draggable')) return true
+    if (e.button !== 0) return
+    if (e.target === this.parent) return
     if (!this.rectList.length) this._getChildrenRect()
     this.isMousedown = true
     // 记录拖拽移动时坐标
