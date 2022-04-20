@@ -1,3 +1,5 @@
+**This project is no longer maintained, see another project for more, [click here](https://github.com/mfuu/sortable-dnd)!!!**
+
 <p>
   <a href="https://npm-stat.com/charts.html?package=js-draggable-list">
     <img alt="Downloads" src="https://img.shields.io/npm/dm/js-draggable-list.svg">
